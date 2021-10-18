@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dbscan-serving
+spec:
+  selector:
+    matchLabels:
+      app: dbscan-serving
+  template:
+    metadata:
+      labels:
+        app: dbscan-serving
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: server
+        image: carlosnatalino/dbscan-serving-rust:0.1.6
+        ports:
+        - containerPort: 5051
+        env:
+        - name: PORT
+          value: "5051"
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 5052
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 5052
+        resources:
+          requests:
+            cpu: 300m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      imagePullSecrets:
+      - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dbscan-serving
+spec:
+  type: ClusterIP
+  selector:
+    app: dbscan-serving
+  ports:
+  - name: grpc
+    port: 5051
+    protocol: TCP
+    targetPort: 5051
+  - name: rest
+    port: 5052
+    protocol: TCP
+    targetPort: 5052
+---
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: dbscan-serving
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dbscan-serving
+  minReplicas: 2
+  maxReplicas: 20
+# ------  targetCPUUtilizationPercentage: 50
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50

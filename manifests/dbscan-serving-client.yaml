@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dbscan-serving-client
+spec:
+  selector:
+    matchLabels:
+      app: dbscan-serving-client
+  template:
+    metadata:
+      labels:
+        app: dbscan-serving-client
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: server
+        image: carlosnatalino/dbscan-serving-client:latest
+        ports:
+        - containerPort: 5051
+        env:
+        - name: PORT
+          value: "50051"
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 50052
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 50052
+        resources:
+          requests:
+            cpu: 10000m
+            memory: 1024Mi
+          limits:
+            cpu: 20000m
+            memory: 10240Mi
+---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: dbscan-serving
+# spec:
+#   type: ClusterIP
+#   selector:
+#     app: dbscan-serving
+#   ports:
+#   - name: grpc
+#     port: 5051
+#     protocol: TCP
+#     targetPort: 5051
+#   - name: rest
+#     port: 5052
+#     protocol: TCP
+#     targetPort: 5052

@@ -1,0 +1,43 @@
+[package]
+name = "dbscan-serving-rust"
+version = "0.1.4"
+edition = "2018"
+repository = "https://github.com/carlosnatalino/dbscan-serving-rust"
+license = "GNU General Public License v3.0"
+authors = ["Carlos Natalino <carlos.natalino@chalmers.se>"]
+description = "A gRPC and REST web-service implementation of the DBSCAN algorithm."
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rand = "0.8.4"
+ctrlc = { version = "3.0", features = ["termination"] }
+
+# gRPC dependencies
+tonic = "0.5"
+tonic-health = "0.4.1"
+prost = "0.8"
+tokio = { version = "1.6.1", features = ["macros", "rt-multi-thread"] }
+futures = "0.3.17"
+
+# rest dependencies
+actix-web = "3"
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+reqwest = { version = "0.11.4", features = ["json"] }
+
+# TODO: necessary for building the protos
+# [build-dependencies]
+# tonic-build = "0.5"
+
+[[bin]]
+name = "server"
+path = "src/server.rs"
+
+[[bin]]
+name = "client"
+path = "src/client.rs"
+
+[[bin]]
+name = "ofc"
+path = "src/clientofc.rs"
